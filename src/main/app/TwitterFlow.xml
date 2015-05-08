@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:https="http://www.mulesoft.org/schema/mule/https" xmlns:twilio="http://www.mulesoft.org/schema/mule/twilio" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:quartz="http://www.mulesoft.org/schema/mule/quartz" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:twitter="http://www.mulesoft.org/schema/mule/twitter" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" version="EE-3.4.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/twitter http://www.mulesoft.org/schema/mule/twitter/2.4/mule-twitter.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/quartz http://www.mulesoft.org/schema/mule/quartz/current/mule-quartz.xsd
+http://www.mulesoft.org/schema/mule/twilio http://www.mulesoft.org/schema/mule/twilio/1.0/mule-twilio.xsd
+http://www.mulesoft.org/schema/mule/https http://www.mulesoft.org/schema/mule/https/current/mule-https.xsd">
+    <twitter:config name="Twitter" accessKey="26693234-W0YjxL9cMJrC0VZZ4xdgFMymxIQ10LeL1K8YlbBY" accessSecret="BZD51BgzbOdFstWZYsqB5p5dbuuDV12vrOdatzhY4E" consumerKey="NMqaca1bzXsOcZhP2XlwA" consumerSecret="VxNQiRLwwKVD0K9mmfxlTTbVdgRpriORypnUbHhxeQw"   doc:name="Twitter" proxyHost="10.33.200.237" proxyPort="8080">
+        <twitter:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
+    </twitter:config>
+    <https:connector name="HTTP_HTTPS" cookieSpec="netscape" validateConnections="true" sendBufferSize="0" receiveBufferSize="0" receiveBacklog="0" clientSoTimeout="10000" serverSoTimeout="10000" socketSoLinger="0" doc:name="HTTP\HTTPS"/>
+    <flow name="TwitterFlow" doc:name="TwitterFlow" initialState="started" processingStrategy="synchronous">
+        <quartz:inbound-endpoint jobName="eventTimer" doc:name="Quartz" 
+        cronExpression="0 0/1 * * * ?" repeatInterval="60000" responseTimeout="10000">
+            <quartz:event-generator-job>
+                <quartz:payload>tick-tock</quartz:payload>
+            </quartz:event-generator-job>
+        </quartz:inbound-endpoint>
+        <twitter:create-place config-ref="Twitter" containedWithin="" placeName="" token="" latitude="" longitude="" doc:name="Twitter"/>
+        <twitter:config name="Twitter" consumerKey="NMqaca1bzXsOcZhP2XlwA" consumerSecret="VxNQiRLwwKVD0K9mmfxlTTbVdgRpriORypnUbHhxeQw" proxyHost="10.33.200.237" proxyPort="8080" doc:name="Twitter">
+            <twitter:connection-pooling-profile initialisationPolicy="INITIALISE_ONE" exhaustedAction="WHEN_EXHAUSTED_GROW"/>
+        </twitter:config>
+        <!-- twitter:show-user config-ref="Twitter"  accessKey="26693234-W0YjxL9cMJrC0VZZ4xdgFMymxIQ10LeL1K8YlbBY" accessSecret="BZD51BgzbOdFstWZYsqB5p5dbuuDV12vrOdatzhY4E" doc:name="Twitter"/-->
+        <twitter:update-status config-ref="Twitter" doc:name="Twitter" accessKey="26693234-W0YjxL9cMJrC0VZZ4xdgFMymxIQ10LeL1K8YlbBY" accessSecret="BZD51BgzbOdFstWZYsqB5p5dbuuDV12vrOdatzhY4E" status="#[header:INBOUND:mymessage]"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <logger message="Cron Job Running #[message.payload]" doc:name="Logger" level="INFO"/>
+    </flow>
+    <flow name="TwitterFlowFlow1" doc:name="TwitterFlowFlow1">
+        <https:inbound-endpoint exchange-pattern="request-response" host="localhost" port="8081" path="abdel" connector-ref="HTTP_HTTPS" contentType="text/plain" keep-alive="true" doc:name="HTTP"/>
+        <set-payload value="#[Hello World]" doc:name="Set Payload"/>
+    </flow>
+</mule>
